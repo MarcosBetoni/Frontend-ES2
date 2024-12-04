@@ -9,6 +9,7 @@ interface MeetingAgendaProps {
 export function MeetingAgenda({ agendas, isEditing, onChange }: MeetingAgendaProps) {
   const handleAddAgenda = () => {
     const newAgenda: Agenda = {
+      id: `${Date.now()}`, // Garante um id único
       titulo: '',
       descricao: '',
     };
@@ -18,17 +19,15 @@ export function MeetingAgenda({ agendas, isEditing, onChange }: MeetingAgendaPro
   const handleUpdateAgenda = (id: string, updates: Partial<Agenda>) => {
     onChange(
       agendas.map((agenda) =>
-        agenda.id === id ? { ...agenda, ...updates } : agenda
+        agenda.id === id
+          ? { ...agenda, titulo: updates.titulo ?? agenda.titulo, descricao: updates.descricao ?? agenda.descricao }
+          : agenda
       )
     );
   };
 
   const handleRemoveAgenda = (id: string) => {
-    onChange(
-      agendas
-        .filter((agenda) => agenda.id !== id)
-        .map((agenda, index) => ({ ...agenda, order: index + 1 }))
-    );
+    onChange(agendas.filter((agenda) => agenda.id !== id));
   };
 
   return (
@@ -56,23 +55,23 @@ export function MeetingAgenda({ agendas, isEditing, onChange }: MeetingAgendaPro
                 <input
                   type="text"
                   value={agenda.titulo}
-                  // onChange={(e) =>
-                  //   handleUpdateAgenda(agenda.id, { title: e.target.value })
-                  // }
+                  onChange={(e) =>
+                    handleUpdateAgenda(agenda.id, { titulo: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   placeholder="Título da pauta"
                 />
                 <textarea
                   value={agenda.descricao}
-                  // onChange={(e) =>
-                  //   handleUpdateAgenda(agenda.id, { description: e.target.value })
-                  // }
+                  onChange={(e) =>
+                    handleUpdateAgenda(agenda.id, { descricao: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   placeholder="Descrição da pauta"
                   rows={2}
                 />
                 <button
-                  // onClick={() => handleRemoveAgenda(agenda.id)}
+                  onClick={() => handleRemoveAgenda(agenda.id)}
                   className="text-red-600 hover:text-red-700"
                 >
                   Remover
@@ -80,9 +79,7 @@ export function MeetingAgenda({ agendas, isEditing, onChange }: MeetingAgendaPro
               </div>
             ) : (
               <>
-                <h3 className="font-medium">
-                  {agenda.titulo}
-                </h3>
+                <h3 className="font-medium">{agenda.titulo}</h3>
                 <p className="text-gray-600 mt-1">{agenda.descricao}</p>
               </>
             )}

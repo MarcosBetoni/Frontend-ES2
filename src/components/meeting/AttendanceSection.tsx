@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MembrosParticipantes } from '../../types/meeting';
 import { isToday, parseISO } from 'date-fns';
 
@@ -15,6 +15,10 @@ export function AttendanceSection({
 }: AttendanceSectionProps) {
   const [selectedAttendees, setSelectedAttendees] = useState<string[]>([]);
   const isEditable = isToday(parseISO(meetingDate));
+
+  useEffect(() => {
+    setSelectedAttendees(attendees.filter((a) => a.estaPresente).map((a) => a.id));
+  }, [attendees]);
 
   const handleToggleAttendee = (id: string) => {
     if (!isEditable) return;
@@ -33,7 +37,7 @@ export function AttendanceSection({
         <h2 className="text-xl font-semibold">Lista de Presença</h2>
         {!isEditable && (
           <span className="text-sm text-gray-500">
-            Disponível apenas para reuniões de hoje
+            Disponível apenas no dia da reunião.
           </span>
         )}
       </div>

@@ -49,4 +49,12 @@ export interface MembrosParticipantes{
   id: string;
   nome: string;
   email: string;
+  estaPresente?: boolean;
+}
+
+export interface Participante {
+  id: string;
+  nome: string;
+  email: string;
+  estaPresente: boolean;
 }

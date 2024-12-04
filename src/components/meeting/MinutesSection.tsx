@@ -15,7 +15,7 @@ export function MinutesSection({ minutes, meetingDate, onChange }: MinutesSectio
         <h2 className="text-xl font-semibold">Ata da Reunião</h2>
         {!isEditable && (
           <span className="text-sm text-gray-500">
-            Disponível para edição apenas no dia da reunião. 
+            Disponível apenas no dia da reunião. 
           </span>
         )}
       </div>

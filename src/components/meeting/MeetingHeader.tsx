@@ -27,6 +27,8 @@ export function MeetingHeader({
     onChange({ ...meeting, dataHora: newDate.toISOString() });
   };
 
+  const tipoUsuario = localStorage.getItem('tipoUsuario');
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex justify-between items-start mb-6">
@@ -54,16 +56,18 @@ export function MeetingHeader({
                 Cancelar
               </button>
             </>
-          ) : (
-            <button
-              onClick={onEdit}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              Editar
-            </button>
-          )}
-        </div>
-      </div>
+              ) : (
+                
+                  <button
+                    onClick={onEdit}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  >
+                    Editar
+                  </button>
+                
+              )}
+            </div>
+          </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <EditableField

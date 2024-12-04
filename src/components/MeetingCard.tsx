@@ -31,7 +31,7 @@ export function MeetingCard({ meeting, onDelete, onView }: MeetingCardProps) {
   console.log(meeting.membrosParticipantes);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white rounded-lg shadow-md p-6 justify-betwee">
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-lg font-semibold text-gray-900">{meeting.titulo}</h3>
         <span
@@ -56,18 +56,12 @@ export function MeetingCard({ meeting, onDelete, onView }: MeetingCardProps) {
         </p>
       </div>
 
-      <div className="flex space-x-2">
+      <div className="flex">
         <button
           onClick={() => onView(meeting.id)}
           className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           Visualizar
-        </button>
-        <button
-          onClick={() => onDelete(meeting.id)}
-          className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-        >
-          Excluir
         </button>
       </div>
     </div>

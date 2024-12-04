@@ -1,5 +1,7 @@
 import axios from 'axios';
-import { Meeting, MeetingFormApiData, Member } from '../types/meeting';
+import { Meeting, MeetingFormApiData, Member, Participante } from '../types/meeting';
+import { set } from 'date-fns';
+import { jwtDecode } from 'jwt-decode';
 
 const api = axios.create({
   baseURL: 'http://localhost:3001',
@@ -129,7 +131,13 @@ const getTodayAt = (hours: number, minutes: number) => {
 export const meetingsApi = {
   getAll: async (): Promise<MeetingFormApiData[]> => {
     try {
-      const { data } = await api.get('/api/reuniao/listar');
+      const { data } = await api.get('/api/reuniao/listar', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
       return data;
     } catch {
       throw new Error('Erro ao buscar reuniões');
@@ -137,9 +145,13 @@ export const meetingsApi = {
   },
 
   getById: async (id: string): Promise<MeetingFormApiData> => {
-    // For development, find meeting in mock data
     try{
-      const { data } = await api.get(`/api/reuniao/detalhes/${id}`);
+      const { data } = await api.get(`/api/reuniao/detalhes/${id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       return data;
     } catch {
       throw new Error('Erro ao buscar reunião');
@@ -147,24 +159,85 @@ export const meetingsApi = {
   },
 
   create: async (meeting: Omit<MeetingFormApiData, 'id'>): Promise<MeetingFormApiData> => {
-    const { data } = await api.post('/api/reuniao', meeting);
+    const { data } = await api.post('/api/reuniao', meeting, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
     return data;
   },
 
-  update: async (id: string, meeting: Partial<Meeting>): Promise<Meeting> => {
-    const { data } = await api.put(`/meetings/${id}`, meeting);
-    return data;
+  addMinutes: async (id: string, senha: string, ata: string): Promise<MeetingFormApiData> => {
+    try {
+      const {data} = await api.put(`/api/reuniao/adicionar-ata/${id}`, {
+        senha,
+        ata
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      return data;
+    } catch {
+      throw new Error('Erro ao adicionar ata');
+    }
   },
 
-  delete: async (id: string): Promise<void> => {
-    await api.delete(`/meetings/${id}`);
+
+
+  update: async (id: string, meeting: Partial<MeetingFormApiData>): Promise<MeetingFormApiData> => {
+    // remove ids from agenda
+    const meetingUpdate = {
+      ...meeting,
+      pautas: meeting.pautas?.map(pauta => ({
+        titulo: pauta.titulo,
+        descricao: pauta.descricao
+      }))
+    };
+
+    try {
+      const {data} = await api.put(`/api/reuniao/${id}`, meetingUpdate, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      return data;
+    } catch {
+      throw new Error('Erro ao atualizar reunião');
+    }
   },
+
+  markAttendance: async (id: string, participantes: Participante[]): Promise<void> => {
+    try {
+      await api.put(`/api/reuniao/marcar-presenca/${id}`, {
+        participantes
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+    } catch {
+      throw new Error('Erro ao marcar presença');
+    }
+  }
+
 };
 
 export const membersApi = {
   getAll: async (): Promise<Member[]> => {
     try {
-      const { data } = await api.get('/api/usuario/listar');
+      const { data } = await api.get('/api/usuario/listar', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       console.log(data);
       return data;
     } catch {
@@ -184,7 +257,19 @@ export const membersApi = {
   },
 
   update: async (id: string, member: Partial<Member>): Promise<Member> => {
-    const { data } = await api.put(`/members/${id}`, member);
+    console.log(member);
+    const user = {
+      nome: member.name,
+      email: member.email,
+      senha: member.password,
+      tipoUsuario: member.role
+    }
+    const { data } = await api.put(`/api/usuario/${id}`, user, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+    });
     return data;
   },
 
@@ -202,9 +287,10 @@ export const membersApi = {
         withCredentials: true,
       });
 
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
+      localStorage.setItem('token', data.token);
+      const decodedToken = jwtDecode(data.token);
+      console.log(decodedToken);
+      localStorage.setItem('user', JSON.stringify(decodedToken));
     } catch {
       throw new Error('Credenciais inválidas');
     }

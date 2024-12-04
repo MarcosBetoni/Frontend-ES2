@@ -3,32 +3,33 @@ import { useQuery } from '@tanstack/react-query';
 import { membersApi } from '../services/api';
 import { MemberModal } from '../components/MemberModal';
 import { Member } from '../types/member';
+import { EditMemberModal } from '../components/EditMemberModal';
 
 export function Members() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
   const { data: members = [], refetch } = useQuery({
     queryKey: ['members'],
     queryFn: membersApi.getAll,
   });
 
+  const handleEdit = async (member: Partial<Member>) => {
+    try {
+      await membersApi.update(member.id, member);
+      // Recarregar dados após editar
+      refetch();
+    } catch (error) {
+      console.error('Erro ao editar membro:', error);
+    }
+  }
+
   const filteredMembers = members.filter((member) =>
     member.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este membro?')) {
-      try {
-        await membersApi.delete(id);
-        // Recarregar dados
-        refetch();
-      } catch (error) {
-        console.error('Erro ao excluir membro:', error);
-      }
-    }
-  };
 
   const handleSave = async (member: Omit<Member, 'id' | 'tipoUsuario'>) => {
     try {
@@ -40,8 +41,11 @@ export function Members() {
     }
   }
 
+  const tipoUsuario = localStorage.getItem('tipoUsuario');
+
   return (
     <div className="p-8">
+      {tipoUsuario === 'GERENTE' && (
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Lista de Membros</h1>
         <button
@@ -51,7 +55,7 @@ export function Members() {
           Novo Membro
         </button>
       </div>
-
+      )}
       <div className="mb-6">
         <input
           type="text"
@@ -98,16 +102,13 @@ export function Members() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button
-                    onClick={() => {/* Implementar edição */}}
+                    onClick={() => {
+                      setSelectedMember(member);
+                      setIsEditModalOpen(true);
+                    }}
                     className="text-blue-600 hover:text-blue-900 mr-4"
                   >
                     Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(member.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Excluir
                   </button>
                 </td>
               </tr>
@@ -121,6 +122,12 @@ export function Members() {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
       />
+      <EditMemberModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        member={selectedMember}
+        onSave={handleEdit}
+       />
     </div>
   );
 }
